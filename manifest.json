@@ -1,6 +1,6 @@
 {
-  "name": "Rixxam Live Player",
-  "short_name": "Rixxam",
+  "name": "Ayrix Live Player",
+  "short_name": "Ayrix",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
