@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Rita ❤ Aman Live Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ff9aee, #9b8cff);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffffee;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+      opacity: 0.8;
+    }
+
+    #hostToggle {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    #hostToggle.host {
+      background: #ff4f9b;
+      color: #fff;
+    }
+
+    #hostToggle:not(.host) {
+      background: #f5f3ff;
+      color: #333;
+    }
+
+    audio {
+      width: 100%;
+      margin: 8px 0 10px;
+    }
+
+    #status {
+      font-size: 0.75rem;
+      text-align: center;
+      margin-bottom: 6px;
+      opacity: 0.8;
+    }
+
+    #songs {
+      max-height: 340px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .song-button {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      border: none;
+      text-align: left;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: #f6f2ff;
+    }
+
+    .song-button.playing {
+      background: #ffd8f0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>Rita ❤ Aman Player</h1>
+    <div class="subtitle">Live session • Same song, same time</div>
+
+    <button id="hostToggle">Become host</button>
+    <div id="status">You are a listener. Wait for host to play a song.</div>
+
+    <audio id="player" controls></audio>
+
+    <div id="songs">Loading songs…</div>
+  </div>
+
+  <script type="module">
+    // ====== GOOGLE DRIVE STREAM CONFIG ======
+    const GOOGLE_API_KEY = "AIzaSyA06vHg4uelFoqLIs-dVBF_trQ7qBtR7TU";
+
+    // ---------- SONG LIST (tumhare links) ----------
+    const SONGS = [
+      {
+        name: "Kamin._Emin..ft_Jony_TikTok-Verson",
+        url: "https://drive.google.com/uc?export=download&id=18D9apP7dukjGqDYxK3RepB9Hnp9hQwXV"
+      },
+      {
+        name: "NUNCA_MUDA (Slowed)",
+        url: "https://drive.google.com/uc?export=download&id=18ERIRL9IREhJPJHOGnLRX_HvKCliUEkO"
+      },
+      {
+        name: "NUNCA_MUDA (Slowed 2)",
+        url: "https://drive.google.com/uc?export=download&id=18LLjpJKOjsWSiJMhzFBZ28zxdWZ4cl9R"
+      },
+      {
+        name: "MONTAGEM_LUNAR_DIAMANTE_2 (Slowed)",
+        url: "https://drive.google.com/uc?export=download&id=18Nzk7PfqEoxXzN7IniXeYXn54h5J3Gc2"
+      },
+      {
+        name: "Noga_Erez - DUMB",
+        url: "https://drive.google.com/uc?export=download&id=18V-_oLHFJZK3nrqhElosZWwRuCEek_DF"
+      },
+      {
+        name: "look_at_me (nomad remix)",
+        url: "https://drive.google.com/uc?export=download&id=18bx3CK4TIgCGld0t4bl_rHdXM11skzIs"
+      },
+      {
+        name: "The_Lost_Soul_Down_X_Lost_Soul",
+        url: "https://drive.google.com/uc?export=download&id=18c12UomcXyJ1RuN_zzL6BBh32PrM9nm_"
+      },
+      {
+        name: "Folki_Soul_Down (Slowed)",
+        url: "https://drive.google.com/uc?export=download&id=18fQgpvMCsnM7_zMdpwS2swd4KrIDRp1d"
+      },
+      {
+        name: "desolate (Slowed)",
+        url: "https://drive.google.com/uc?export=download&id=18gln12KHD0BHILQnHmheGfm1tLRjGhxe"
+      },
+      {
+        name: "kompa_parano,frozy__extend",
+        url: "https://drive.google.com/uc?export=download&id=18huyjy1KlXOXPrwlVx68tbKi8dEjHrV2"
+      },
+      {
+        name: "Shopping_List - Honey Singh",
+        url: "https://drive.google.com/uc?export=download&id=18iM5ZCiW1OEHSByWSyEWS8x-DfPizj6N"
+      },
+      {
+        name: "Wanted Aman - Recreated shit",
+        url: "https://drive.google.com/uc?export=download&id=18jpOwY8gJ1X_b6ULOfcQTwu7_zcV0dHF"
+      },
+      {
+        name: "rocKsun - MAHAAN",
+        url: "https://drive.google.com/uc?export=download&id=18n4tPUgUVt20ZP576pDagXdUf4n7Z3uT"
+      },
+      {
+        name: "You (Slowed + Reverb)",
+        url: "https://drive.google.com/uc?export=download&id=18nvdf9Npd2zjVcqtTnrymlutCJUWxj20"
+      },
+      {
+        name: "Bae I'm Back",
+        url: "https://drive.google.com/uc?export=download&id=18rbicc7MLHiHABEwnojq3f7dlGdhpqeW"
+      },
+      {
+        name: "Tyga - Adrenaline",
+        url: "https://drive.google.com/uc?export=download&id=18tV3cVbAWrh59-vGKFudHyEtbdHipk8j"
+      },
+      {
+        name: "MANIAC 2.0 Remix",
+        url: "https://drive.google.com/uc?export=download&id=18uAUH6vmhM0FOkX_WrZJViehvBO9JNVR"
+      },
+      {
+        name: "Медуза TikTok Remix",
+        url: "https://drive.google.com/uc?export=download&id=18yoIZz1mkWlCN-yYVOv0Cx8ayT69z2AS"
+      },
+      {
+        name: "La Fiesta - Sekiz",
+        url: "https://drive.google.com/uc?export=download&id=191EzI8OHw7_q3mzcf03Yg9sRa6iOdOOF"
+      },
+      {
+        name: "DJ FKU - VINGANÇA 2",
+        url: "https://drive.google.com/uc?export=download&id=191OsmQj29dQ_r6iJVWo4i9w8K4REzGOm"
+      }
+      // baaki songs bhi isi pattern me aage add kar sakta hai
+    ];
+
+    // Drive link -> streamable URL
+    function toStreamUrl(driveUrl) {
+      const match = driveUrl.match(/id=([^&]+)/);
+      const fileId = match ? match[1] : driveUrl.trim();
+      return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
+    }
+
+    // ---------- FIREBASE ----------
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      update
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCWnQ02Wy3rM-gG8yVwfSJchRsO7aDrTcU",
+      authDomain: "ritaxaman.firebaseapp.com",
+      databaseURL: "https://ritaxaman-default-rtdb.firebaseio.com",
+      projectId: "ritaxaman",
+      storageBucket: "ritaxaman.firebasestorage.app",
+      messagingSenderId: "559873885969",
+      appId: "1:559873885969:web:e7a7b4fe3a3fc5b420aeb0",
+      measurementId: "G-53Z6W1XTJS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const sessionRef = ref(db, "sessions/ritaAman");
+
+    // ---------- UI ELEMENTS ----------
+    const audio = document.getElementById("player");
+    const hostToggle = document.getElementById("hostToggle");
+    const statusEl = document.getElementById("status");
+    const songsContainer = document.getElementById("songs");
+
+    let isHost = false;
+
+    // ---------- HOST TOGGLE ----------
+    hostToggle.addEventListener("click", () => {
+      isHost = !isHost;
+      if (isHost) {
+        hostToggle.classList.add("host");
+        hostToggle.textContent = "You are host ✅";
+        statusEl.textContent =
+          "You are host. Whatever you play will sync to Rita’s phone.";
+        sendState();
+      } else {
+        hostToggle.classList.remove("host");
+        hostToggle.textContent = "Become host";
+        statusEl.textContent =
+          "You are a listener. Wait for host to play a song.";
+      }
+    });
+
+    // ---------- SONG BUTTONS FROM SONGS ARRAY ----------
+    function buildSongButtons() {
+      if (!SONGS.length) {
+        songsContainer.textContent = "No songs configured.";
+        return;
+      }
+      songsContainer.innerHTML = "";
+      SONGS.forEach((song, index) => {
+        const btn = document.createElement("button");
+        btn.className = "song-button";
+        btn.textContent = (index + 1) + ". " + song.name;
+        btn.dataset.url = song.url; // original drive url
+
+        btn.addEventListener("click", () => {
+          if (!isHost) {
+            alert("Only host can select songs. Tap 'Become host' on your phone.");
+            return;
+          }
+          const streamUrl = toStreamUrl(song.url);
+          playAsHost(streamUrl);
+          highlightPlaying(streamUrl);
+        });
+
+        songsContainer.appendChild(btn);
+      });
+    }
+
+    function highlightPlaying(url) {
+      const buttons = songsContainer.querySelectorAll(".song-button");
+      buttons.forEach((b) => {
+        const streamForButton = toStreamUrl(b.dataset.url);
+        if (streamForButton === url) {
+          b.classList.add("playing");
+        } else {
+          b.classList.remove("playing");
+        }
+      });
+    }
+
+    // ---------- HOST: SEND STATE ----------
+    function sendState() {
+      if (!isHost) return;
+      update(sessionRef, {
+        songUrl: audio.src || "",
+        isPlaying: !audio.paused,
+        position: audio.currentTime || 0,
+        updatedAt: Date.now()
+      }).catch((e) => console.error("sendState error:", e));
+    }
+
+    async function playAsHost(url) {
+      if (!isHost) return;
+      audio.src = url;
+      audio.currentTime = 0;
+      try {
+        await audio.play();
+      } catch (e) {
+        console.error("Playback error:", e);
+      }
+      sendState();
+    }
+
+    audio.addEventListener("play", () => sendState());
+    audio.addEventListener("pause", () => sendState());
+    audio.addEventListener("seeked", () => sendState());
+    audio.addEventListener("ended", () => sendState());
+
+    // ---------- LISTENER: RECEIVE STATE ----------
+    onValue(sessionRef, async (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      const {songUrl, isPlaying, position} = data;
+
+      if (isHost) return; // host ignore kare
+
+      if (songUrl && audio.src !== songUrl) {
+        audio.src = songUrl;
+        highlightPlaying(songUrl);
+      }
+
+      if (Math.abs(audio.currentTime - position) > 1) {
+        audio.currentTime = position;
+      }
+
+      if (isPlaying && audio.paused) {
+        audio.play().catch(() => { });
+      } else if (!isPlaying && !audio.paused) {
+        audio.pause();
+      }
+
+      statusEl.textContent = "Listening with host… 🎧";
+    });
+
+    // ---------- START ----------
+    buildSongButtons();
+  </script>
+</body>
+
+</html>
+      if (isPlaying && audio.paused) {
+        audio.play().catch(() => { });
+      } else if (!isPlaying && !audio.paused) {
+        audio.pause();
+      }
+
+      statusEl.textContent = "Listening with host… 🎧";
+    });
+
+    // ---------- START ----------
+    buildSongButtons();
+  </script>
+</body>
+
+</html>
+      if (isPlaying && audio.paused) {
+        audio.play().catch(() => { });
+      } else if (!isPlaying && !audio.paused) {
+        audio.pause();
+      }
+
+      statusEl.textContent = "Listening with host… 🎧";
+    });
+
+    // ---------- START ----------
+    buildSongButtons();
+  </script>
+</body>
+
+</html>
