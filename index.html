@@ -142,12 +142,90 @@ margin: 0 auto;
       content: "● ";
       color: #ffe9ff;
     }
+    /* ===== Ayrix splash screen ===== */
+
+#ayrix-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #ff4fd8 0%, #2b0038 40%, #05000b 100%);
+  animation: ayrixSplashIn 0.5s ease-out forwards;
+}
+
+#ayrix-splash.hide {
+  animation: ayrixSplashOut 0.5s ease-in forwards;
+}
+
+.ayrix-splash-inner {
+  text-align: center;
+  padding: 24px;
+}
+
+.ayrix-splash-logo-wrap {
+  display: inline-flex;
+  padding: 14px;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0 25px rgba(255, 79, 216, 0.7),
+    0 0 60px rgba(154, 92, 255, 0.6);
+}
+
+.ayrix-splash-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+}
+
+.ayrix-splash-title {
+  margin-top: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.ayrix-splash-subtitle {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd9fb;
+  opacity: 0.9;
+}
+
+@keyframes ayrixSplashIn {
+  0% { opacity: 0; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ayrixSplashOut {
+  0% { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.96) translateY(-18px); visibility: hidden; }
+}
 
   </style>
 </head>
 
 <body>
+  <!-- Ayrix opening splash -->
+  <div id="ayrix-splash">
+    <div class="ayrix-splash-inner">
+      <div class="ayrix-splash-logo-wrap">
+        <img src="icons/ayrix-icon-192.png" alt="Ayrix logo" class="ayrix-splash-logo">
+      </div>
+      <div class="ayrix-splash-title">AYRIX</div>
+      <div class="ayrix-splash-subtitle">Stay synced, stay close 🤍</div>
+    </div>
+  </div>
+  
   <div class="app">
+    ...
     <h1>Ayrix – Live Sync Player</h1>
     <div class="subtitle">Ayrix by Aman, with luvv • Stay synced, stay close 🤍</div>
 
@@ -158,6 +236,15 @@ margin: 0 auto;
 
     <div id="songs">Loading songs…</div>
   </div>
+
+  <script>
+  window.addEventListener("load", () => {
+    const splash = document.getElementById("ayrix-splash");
+    setTimeout(() => {
+      splash.classList.add("hide");
+    }, 900);
+  });
+</script>
 
   <script type="module">
     // ====== GOOGLE DRIVE STREAM CONFIG ======
