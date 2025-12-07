@@ -357,89 +357,10 @@ margin: 0 auto;
     const GOOGLE_API_KEY = "AIzaSyA06vHg4uelFoqLIs-dVBF_trQ7qBtR7TU";
 
     // ---------- SONG LIST (tumhare links) ----------
-    const SONGS = [
-      {
-        name: "Kamin._Emin..ft_Jony_TikTok-Verson",
-        url: "https://drive.google.com/uc?export=download&id=18D9apP7dukjGqDYxK3RepB9Hnp9hQwXV"
-      },
-      {
-        name: "NUNCA_MUDA (Slowed)",
-        url: "https://drive.google.com/uc?export=download&id=18ERIRL9IREhJPJHOGnLRX_HvKCliUEkO"
-      },
-      {
-        name: "NUNCA_MUDA (Slowed 2)",
-        url: "https://drive.google.com/uc?export=download&id=18LLjpJKOjsWSiJMhzFBZ28zxdWZ4cl9R"
-      },
-      {
-        name: "MONTAGEM_LUNAR_DIAMANTE_2 (Slowed)",
-        url: "https://drive.google.com/uc?export=download&id=18Nzk7PfqEoxXzN7IniXeYXn54h5J3Gc2"
-      },
-      {
-        name: "Noga_Erez - DUMB",
-        url: "https://drive.google.com/uc?export=download&id=18V-_oLHFJZK3nrqhElosZWwRuCEek_DF"
-      },
-      {
-        name: "look_at_me (nomad remix)",
-        url: "https://drive.google.com/uc?export=download&id=18bx3CK4TIgCGld0t4bl_rHdXM11skzIs"
-      },
-      {
-        name: "The_Lost_Soul_Down_X_Lost_Soul",
-        url: "https://drive.google.com/uc?export=download&id=18c12UomcXyJ1RuN_zzL6BBh32PrM9nm_"
-      },
-      {
-        name: "Folki_Soul_Down (Slowed)",
-        url: "https://drive.google.com/uc?export=download&id=18fQgpvMCsnM7_zMdpwS2swd4KrIDRp1d"
-      },
-      {
-        name: "desolate (Slowed)",
-        url: "https://drive.google.com/uc?export=download&id=18gln12KHD0BHILQnHmheGfm1tLRjGhxe"
-      },
-      {
-        name: "kompa_parano,frozy__extend",
-        url: "https://drive.google.com/uc?export=download&id=18huyjy1KlXOXPrwlVx68tbKi8dEjHrV2"
-      },
-      {
-        name: "Shopping_List - Honey Singh",
-        url: "https://drive.google.com/uc?export=download&id=18iM5ZCiW1OEHSByWSyEWS8x-DfPizj6N"
-      },
-      {
-        name: "Wanted Aman - Recreated shit",
-        url: "https://drive.google.com/uc?export=download&id=18jpOwY8gJ1X_b6ULOfcQTwu7_zcV0dHF"
-      },
-      {
-        name: "rocKsun - MAHAAN",
-        url: "https://drive.google.com/uc?export=download&id=18n4tPUgUVt20ZP576pDagXdUf4n7Z3uT"
-      },
-      {
-        name: "You (Slowed + Reverb)",
-        url: "https://drive.google.com/uc?export=download&id=18nvdf9Npd2zjVcqtTnrymlutCJUWxj20"
-      },
-      {
-        name: "Bae I'm Back",
-        url: "https://drive.google.com/uc?export=download&id=18rbicc7MLHiHABEwnojq3f7dlGdhpqeW"
-      },
-      {
-        name: "Tyga - Adrenaline",
-        url: "https://drive.google.com/uc?export=download&id=18tV3cVbAWrh59-vGKFudHyEtbdHipk8j"
-      },
-      {
-        name: "MANIAC 2.0 Remix",
-        url: "https://drive.google.com/uc?export=download&id=18uAUH6vmhM0FOkX_WrZJViehvBO9JNVR"
-      },
-      {
-        name: "Медуза TikTok Remix",
-        url: "https://drive.google.com/uc?export=download&id=18yoIZz1mkWlCN-yYVOv0Cx8ayT69z2AS"
-      },
-      {
-        name: "La Fiesta - Sekiz",
-        url: "https://drive.google.com/uc?export=download&id=191EzI8OHw7_q3mzcf03Yg9sRa6iOdOOF"
-      },
-      {
-        name: "DJ FKU - VINGANÇA 2",
-        url: "https://drive.google.com/uc?export=download&id=191OsmQj29dQ_r6iJVWo4i9w8K4REzGOm"
-      }
-      // baaki songs bhi isi pattern me aage add kar sakta hai
-    ];
+    // ------------ SONG LIST (loaded from Ayrix JSON API) ---------
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxSf4pGRfrEH3Y8nN9-mqGy6OT2z5BjXsWUlHFlha25lpnsQtR4xjSXnU7MDv1HLcZW6g/exec";
+let SONGS = [];
+
 // ================= CUSTOM PLAYER CONTROLS =================
 
 const audioPlayer = document.getElementById("player");
