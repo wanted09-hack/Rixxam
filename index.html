@@ -145,23 +145,19 @@ margin: 0 auto;
     /* ===== Ayrix splash screen ===== */
 
 #ayrix-splash {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at top, #ff4fd8 0%, #2b0038 40%, #05000b 100%);
-  #ayrix-splash {
-  ...
-  animation: ayrixSplashIn 0.6s ease-out forwards;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top, #ff4fd8 0%, #2b0038 40%, #05000b 100%);
+    animation: ayrixSplashIn 0.8s ease-out forwards;
 }
 
 #ayrix-splash.hide {
-  animation: ayrixSplashOut 0.7s ease-in forwards;
-  
+    animation: ayrixSplashOut 0.8s ease-in forwards;
 }
-
 
 .ayrix-splash-inner {
   text-align: center;
@@ -242,17 +238,21 @@ margin: 0 auto;
   </div>
 
   <script>
-  // Ayrix splash – 2.3 sec visible
-  window.addEventListener("DOMContentLoaded", () => {
-    const splash = document.getElementById("ayrix-splash");
-    if (!splash) return;
-
-    // 2300 ms = ~2.3 seconds visible time
+  // Ayrix splash – simple timer
+  const splash = document.getElementById("ayrix-splash");
+  if (splash) {
+    // kitni der splash dikhana hai (ms)
     setTimeout(() => {
       splash.classList.add("hide");
-    }, 2300);
-  });
+
+      // exit animation khatam hote hi element hata do
+      setTimeout(() => {
+        splash.remove();
+      }, 800); // ye value = CSS out animation duration se thodi zyada
+    }, 2300); // 2.3 sec visible
+  }
 </script>
+
 
 
   <script type="module">
