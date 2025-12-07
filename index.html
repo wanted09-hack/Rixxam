@@ -213,7 +213,66 @@ margin: 0 auto;
 }
 
 
-  </style>
+
+   #playerBar {
+     padding: 12px 18px;
+     margin-top: 10px;
+     border-radius: 18px;
+     background: rgba(255, 255, 255, 0.06);
+     backdrop-filter: blur(12px);
+   }
+
+   .time-row {
+     display: flex;
+     justify-content: space-between;
+     font-size: 11px;
+     opacity: 0.75;
+     margin-bottom: 6px;
+   }
+
+   #seekBar {
+     width: 100%;
+     -webkit-appearance: none;
+     appearance: none;
+     height: 4px;
+     border-radius: 999px;
+     background: rgba(255, 255, 255, 0.22);
+     outline: none;
+     margin-bottom: 12px;
+   }
+
+   #seekBar::-webkit-slider-thumb {
+     width: 14px;
+     height: 14px;
+     border-radius: 50%;
+     background: #ffffff;
+     -webkit-appearance: none;
+   }
+
+   .player-controls {
+     display: flex;
+     justify-content: center;
+     gap: 22px;
+   }
+
+   .player-controls button {
+     background: linear-gradient(135deg, #ffb347, #ff7a18);
+     color: #fff;
+     border: none;
+     padding: 10px 18px;
+     border-radius: 14px;
+     font-size: 20px;
+     box-shadow: 0 0 15px rgba(255, 122, 24, 0.4);
+     transition: 0.15s ease;
+   }
+
+   .player-controls button:active {
+     transform: scale(0.9);
+     box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+   }
+
+</style>
+  
 </head>
 
 <body>
@@ -266,7 +325,8 @@ margin: 0 auto;
   </div>
 
   <!-- Hidden real audio -->
-  <audio id="audioPlayer"></audio>
+  <audio id="player"></audio>
+
 </div>
 
 
@@ -380,6 +440,75 @@ margin: 0 auto;
       }
       // baaki songs bhi isi pattern me aage add kar sakta hai
     ];
+// ================= CUSTOM PLAYER CONTROLS =================
+
+const audioPlayer = document.getElementById("audioPlayer");
+const prevBtn = document.getElementById("prevBtn");
+const playPauseBtn = document.getElementById("playPauseBtn");
+const nextBtn = document.getElementById("nextBtn");
+const seekBar = document.getElementById("seekBar");
+const currentTimeEl = document.getElementById("currentTime");
+const totalTimeEl = document.getElementById("totalTime");
+
+let currentSongIndex = 0;
+
+// Load song by index
+function loadSong(index) {
+    const song = SONGS[index];
+    if (!song) return;
+    const url = toStreamUrl(song.url);
+    audioPlayer.src = url;
+    audioPlayer.currentTime = 0;
+    audioPlayer.play();
+    highlightPlaying(url);
+    sendState();
+}
+
+// Play/Pause button
+playPauseBtn.addEventListener("click", () => {
+    if (audioPlayer.paused) {
+        audioPlayer.play();
+        playPauseBtn.innerText = "⏸";
+    } else {
+        audioPlayer.pause();
+        playPauseBtn.innerText = "▶";
+    }
+});
+
+// Previous button
+prevBtn.addEventListener("click", () => {
+    currentSongIndex = (currentSongIndex - 1 + SONGS.length) % SONGS.length;
+    loadSong(currentSongIndex);
+});
+
+// Next button
+nextBtn.addEventListener("click", () => {
+    currentSongIndex = (currentSongIndex + 1) % SONGS.length;
+    loadSong(currentSongIndex);
+});
+
+// Update seek bar + time
+audioPlayer.addEventListener("timeupdate", () => {
+    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+    seekBar.value = progress || 0;
+
+    currentTimeEl.innerText = formatTime(audioPlayer.currentTime);
+    totalTimeEl.innerText = formatTime(audioPlayer.duration);
+});
+
+// Seek manually
+seekBar.addEventListener("input", () => {
+    const time = (seekBar.value / 100) * audioPlayer.duration;
+    audioPlayer.currentTime = time;
+});
+
+// Format time
+function formatTime(sec) {
+    if (!sec) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+}
 
     // Drive link -> streamable URL
     function toStreamUrl(driveUrl) {
