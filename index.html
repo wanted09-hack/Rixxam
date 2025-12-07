@@ -152,12 +152,16 @@ margin: 0 auto;
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle at top, #ff4fd8 0%, #2b0038 40%, #05000b 100%);
-  animation: ayrixSplashIn 0.5s ease-out forwards;
+  #ayrix-splash {
+  ...
+  animation: ayrixSplashIn 0.6s ease-out forwards;
 }
 
 #ayrix-splash.hide {
-  animation: ayrixSplashOut 0.5s ease-in forwards;
+  animation: ayrixSplashOut 0.7s ease-in forwards;
+  
 }
+
 
 .ayrix-splash-inner {
   text-align: center;
@@ -238,13 +242,18 @@ margin: 0 auto;
   </div>
 
   <script>
-  window.addEventListener("load", () => {
+  // Ayrix splash – 2.3 sec visible
+  window.addEventListener("DOMContentLoaded", () => {
     const splash = document.getElementById("ayrix-splash");
+    if (!splash) return;
+
+    // 2300 ms = ~2.3 seconds visible time
     setTimeout(() => {
       splash.classList.add("hide");
-    }, 900);
+    }, 2300);
   });
 </script>
+
 
   <script type="module">
     // ====== GOOGLE DRIVE STREAM CONFIG ======
