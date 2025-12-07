@@ -486,6 +486,41 @@ function formatTime(sec) {
           "You are a listener. Wait for host to play a song.";
       }
     });
+// ---------- LOAD SONGS FROM AYRIX JSON API ----------
+async function loadSongsFromApi() {
+  try {
+    if (songsContainer) {
+      songsContainer.textContent = "Loading songs...";
+    }
+
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+
+    if (!data || !Array.isArray(data.songs) || data.songs.length === 0) {
+      if (songsContainer) {
+        songsContainer.textContent = "No songs found in Drive folder.";
+      }
+      SONGS = [];
+      return;
+    }
+
+    // API se aaye songs set karo
+    SONGS = data.songs;
+
+    if (songsContainer) {
+      songsContainer.textContent = "";
+    }
+
+    // buttons banao + pehla song select
+    buildSongButtons();
+    loadSong(0);
+  } catch (err) {
+    console.error("Error loading songs from API:", err);
+    if (songsContainer) {
+      songsContainer.textContent = "Error loading songs. Please try again later.";
+    }
+  }
+}
 
     // ---------- SONG BUTTONS FROM SONGS ARRAY ----------
     function buildSongButtons() {
