@@ -241,7 +241,34 @@ margin: 0 auto;
     <button id="hostToggle">Become host</button>
     <div id="status">You are a listener. Wait for host to play a song.</div>
 
-    <audio id="player" controls></audio>
+    <div id="playerBar">
+  <!-- Time row -->
+  <div class="time-row">
+    <span id="currentTime">0:00</span>
+    <span id="totalTime">0:00</span>
+  </div>
+
+  <!-- Progress line -->
+  <input
+    type="range"
+    id="seekBar"
+    min="0"
+    max="100"
+    value="0"
+    step="0.1"
+  />
+
+  <!-- Buttons below -->
+  <div class="player-controls">
+    <button id="prevBtn">⏪</button>
+    <button id="playPauseBtn">▶</button>
+    <button id="nextBtn">⏩</button>
+  </div>
+
+  <!-- Hidden real audio -->
+  <audio id="audioPlayer"></audio>
+</div>
+
 
     <div id="songs">Loading songs…</div>
   </div>
