@@ -4,12 +4,10 @@ const CACHE_NAME = "ayrix-v1"; // <- bump this to v2, v3 when you want a hard re
 
 // Files you really want cached for offline
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/style.css",      // CHANGE if your CSS file name is different
-  "/script.js",      // CHANGE if your JS file name is different
-  "/icons/ayrix-icon-192.png",
-  "/icons/ayrix-icon-512.png"
+  "./",
+  "./index.html",
+  "./icons/ayrix-icon-192.png",
+  "./icons/ayrix-icon-512.png"
 ];
 
 // Install: pre-cache some core files + take control fast
