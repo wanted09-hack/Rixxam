@@ -463,6 +463,79 @@ function formatTime(sec) {
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const sessionRef = ref(db, "sessions/ayrix");
+    // --- VISUAL DEBUG OVERLAY (temporary) ---
+(function setupVisualDebug() {
+  // small floating panel to show logs on-screen (temporary)
+  const dbg = document.createElement('div');
+  dbg.id = 'ayrix-debug';
+  dbg.style.position = 'fixed';
+  dbg.style.right = '12px';
+  dbg.style.bottom = '12px';
+  dbg.style.maxWidth = '46vw';
+  dbg.style.maxHeight = '40vh';
+  dbg.style.overflow = 'auto';
+  dbg.style.zIndex = 99999;
+  dbg.style.background = 'rgba(0,0,0,0.75)';
+  dbg.style.color = 'white';
+  dbg.style.fontSize = '12px';
+  dbg.style.padding = '8px';
+  dbg.style.borderRadius = '10px';
+  dbg.style.backdropFilter = 'blur(6px)';
+  dbg.style.boxShadow = '0 6px 20px rgba(0,0,0,0.6)';
+  dbg.innerHTML = '<b>Ayrix debug</b><div id="ayrix-debug-content" style="margin-top:6px"></div>';
+  document.body.appendChild(dbg);
+
+  function appendLog(type, msg) {
+    const c = document.getElementById('ayrix-debug-content');
+    const el = document.createElement('div');
+    el.style.marginBottom = '6px';
+    el.style.whiteSpace = 'pre-wrap';
+    el.textContent = `[${type}] ${msg}`;
+    c.appendChild(el);
+    c.scrollTop = c.scrollHeight;
+  }
+
+  // forward console messages here too
+  const originalLog = console.log.bind(console);
+  const originalError = console.error.bind(console);
+  console.log = (...args) => { originalLog(...args); appendLog('log', args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')); };
+  console.error = (...args) => { originalError(...args); appendLog('err', args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')); };
+
+  // quick runtime checks (will run once)
+  try {
+    appendLog('info', 'running quick runtime checks...');
+    appendLog('info', 'SCRIPT_URL value: ' + (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : 'undefined'));
+    appendLog('info', 'SONGS variable: ' + (typeof SONGS !== 'undefined' ? (Array.isArray(SONGS) ? 'array len=' + SONGS.length : typeof SONGS) : 'undefined'));
+  } catch (e) {
+    appendLog('err', 'quick check error: ' + String(e));
+  }
+
+  // try fetching the SCRIPT_URL to verify JSON (only if set)
+  (async () => {
+    if (typeof SCRIPT_URL === 'undefined') {
+      appendLog('warn', 'SCRIPT_URL is undefined — update SCRIPT_URL in code.');
+      return;
+    }
+    appendLog('info', 'fetching SCRIPT_URL...');
+    try {
+      const r = await fetch(SCRIPT_URL, { cache: 'no-store' });
+      appendLog('info', 'fetch status: ' + r.status + ' ' + r.statusText);
+      const txt = await r.text();
+      appendLog('info', 'response length: ' + txt.length + ' chars');
+      try {
+        const j = JSON.parse(txt);
+        appendLog('info', 'JSON parsed OK — keys: ' + Object.keys(j).join(', '));
+        if (Array.isArray(j.songs)) appendLog('info', 'songs count in API: ' + j.songs.length);
+      } catch (pe) {
+        appendLog('err', 'JSON parse failed: ' + pe.message);
+        appendLog('err', 'response preview: ' + txt.slice(0,800));
+      }
+    } catch (fe) {
+      appendLog('err', 'fetch failed: ' + fe.message);
+    }
+  })();
+})();
+
 
     // --- QUICK CHAT DB TEST (temporary) ---
 const testRoomRef = ref(db, 'rooms/test_room/messages');
