@@ -439,13 +439,15 @@ function formatTime(sec) {
     }
 
     // ---------- FIREBASE ----------
-    import {initializeApp} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import {
-      getDatabase,
-      ref,
-      onValue,
-      update
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+  getDatabase,
+  ref,
+  onValue,
+  update,
+  push,
+  onChildAdded
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
 
     const firebaseConfig = {
   apiKey: "AIzaSyDgCke5Pv2nQdFo7LalikW50N6haayuIS0",
