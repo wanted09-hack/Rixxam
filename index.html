@@ -913,10 +913,9 @@ loadSongsFromApi();
       if(typeof window.ayrixSendToServer === 'function') {
         window.ayrixSendToServer(txt);
       } else {
-        // demo echo after 600ms
-        setTimeout(()=> appendMessage('Echo: '+txt,'other'), 550);
-      }
-    });
+    appendMessage('(Not connected: message not delivered)', 'other');
+}
+
 
     // allow Enter to send (Shift+Enter for new line)
     input.addEventListener('keydown', (e) => {
