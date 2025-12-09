@@ -620,6 +620,341 @@ async function loadSongsFromApi() {
 loadSongsFromApi();
 
   </script>
+  <!-- Ayrix Chat Widget (paste near end of body) -->
+<style>
+  /* Theme variables - change to match Ayrix */
+  :root {
+    --ayrix-p1: #ff73d1; /* pink */
+    --ayrix-p2: #8b5cf6; /* purple */
+    --bg-panel: rgba(10,10,12,0.95);
+    --glass: rgba(255,255,255,0.04);
+    --text: #f6f6f8;
+    --muted: #cfc9d8;
+    --radius: 14px;
+  }
+
+  /* Floating chat button */
+  .ayrix-chat-button {
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    z-index: 1200;
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--ayrix-p1) 55%, transparent), color-mix(in srgb, var(--ayrix-p2) 40%, transparent));
+    box-shadow:
+      0 6px 18px rgba(139,92,246,0.18),
+      0 0 18px rgba(255,115,209,0.12),
+      0 0 30px rgba(139,92,246,0.06);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: transform .18s ease;
+  }
+  .ayrix-chat-button:active { transform: scale(.98); }
+
+  .ayrix-chat-icon {
+    width: 34px;
+    height: 34px;
+    filter: drop-shadow(0 6px 20px rgba(139,92,246,0.16));
+  }
+
+  /* glowing outline pulse */
+  .ayrix-chat-button::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 20%, rgba(255,115,209,0.18), transparent 8%),
+                radial-gradient(circle at 80% 80%, rgba(139,92,246,0.14), transparent 18%);
+    z-index: -1;
+    animation: pulseGlow 2.7s infinite;
+  }
+  @keyframes pulseGlow {
+    0% { transform: scale(.95); opacity: .9; }
+    50% { transform: scale(1.12); opacity: .6; }
+    100% { transform: scale(.95); opacity: .9; }
+  }
+
+  /* Badge for counts on button */
+  .ayrix-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: linear-gradient(90deg, var(--ayrix-p1), var(--ayrix-p2));
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    box-shadow: 0 6px 14px rgba(139,92,246,0.12);
+  }
+
+  /* Chat panel */
+  .ayrix-chat-panel {
+    position: fixed;
+    right: 20px;
+    bottom: 100px;
+    width: 360px;
+    max-width: calc(100% - 40px);
+    max-height: 68vh;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--text);
+    box-shadow: 0 12px 40px rgba(8,6,16,0.6);
+    overflow: hidden;
+    transform: translateY(18px) scale(.985);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .22s ease;
+    z-index: 1250;
+    backdrop-filter: blur(8px) saturate(120%);
+  }
+  .ayrix-chat-panel.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .ayrix-chat-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  }
+  .ayrix-chat-title {
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-weight:700;
+    font-size:15px;
+    color:var(--text);
+  }
+  .ayrix-chat-counters {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .ayrix-counter {
+    font-size:12px;
+    padding:6px 8px;
+    border-radius:10px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.03);
+    color:var(--muted);
+  }
+
+  .ayrix-chat-close {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    font-weight:700;
+    cursor:pointer;
+    padding:6px;
+    border-radius:8px;
+  }
+  .ayrix-chat-close:hover { color:var(--text); background:var(--glass); }
+
+  /* messages area */
+  .ayrix-chat-body {
+    padding:12px;
+    overflow:auto;
+    height: calc(68vh - 160px);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .ayrix-msg {
+    max-width:78%;
+    padding:8px 10px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.2;
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.003));
+    border:1px solid rgba(255,255,255,0.03);
+    color:var(--text);
+  }
+  .ayrix-msg.me {
+    align-self:flex-end;
+    background: linear-gradient(135deg, rgba(255,115,209,0.12), rgba(139,92,246,0.08));
+    border: 1px solid rgba(255,115,209,0.14);
+    box-shadow: 0 6px 18px rgba(139,92,246,0.04);
+  }
+  .ayrix-msg.other {
+    align-self:flex-start;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  }
+
+  /* input area */
+  .ayrix-chat-input {
+    display:flex;
+    gap:8px;
+    padding:12px;
+    border-top:1px solid rgba(255,255,255,0.03);
+    align-items:center;
+  }
+  .ayrix-input-field {
+    flex:1;
+    min-height:44px;
+    border-radius:12px;
+    padding:10px 12px;
+    background: rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.03);
+    color:var(--text);
+    resize:none;
+    outline: none;
+    font-size:14px;
+  }
+  .ayrix-send-btn {
+    padding:10px 12px;
+    border-radius:12px;
+    background: linear-gradient(90deg,var(--ayrix-p1),var(--ayrix-p2));
+    border:0;
+    color:white;
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  /* small responsive */
+  @media (max-width:520px) {
+    .ayrix-chat-panel {
+      right: 12px;
+      left: 12px;
+      width: auto;
+      bottom: 84px;
+    }
+    .ayrix-chat-body { height: calc(60vh - 140px); }
+  }
+</style>
+
+<!-- Button -->
+<div id="ayrixChatBtn" class="ayrix-chat-button" role="button" aria-label="Open chat" title="Chat">
+  <!-- simple chat bubble svg -->
+  <svg class="ayrix-chat-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div id="ayrixBtnBadge" class="ayrix-badge" style="display:none">0</div>
+</div>
+
+<!-- Chat Panel -->
+<div id="ayrixChatPanel" class="ayrix-chat-panel" role="dialog" aria-hidden="true" aria-label="Ayrix Chat">
+  <div class="ayrix-chat-header">
+    <div class="ayrix-chat-title">
+      <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(90deg,var(--ayrix-p1),var(--ayrix-p2));box-shadow:0 6px 18px rgba(139,92,246,0.12)"></div>
+      <div>Ayrix Chat</div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="ayrix-chat-counters" aria-hidden="true">
+        <div id="ayrixAppCount" class="ayrix-counter">App: 0</div>
+        <div id="ayrixChatCount" class="ayrix-counter">Chat: 0</div>
+      </div>
+      <button id="ayrixCloseBtn" class="ayrix-chat-close" aria-label="Close chat">✕</button>
+    </div>
+  </div>
+
+  <div id="ayrixChatBody" class="ayrix-chat-body" aria-live="polite"></div>
+
+  <div class="ayrix-chat-input">
+    <textarea id="ayrixMsgInput" class="ayrix-input-field" placeholder="Say something nice..." rows="1"></textarea>
+    <button id="ayrixSendBtn" class="ayrix-send-btn">Send</button>
+  </div>
+</div>
+
+<script>
+  // Simple chat widget behavior + integration helpers
+  (function(){
+    const btn = document.getElementById('ayrixChatBtn');
+    const panel = document.getElementById('ayrixChatPanel');
+    const closeBtn = document.getElementById('ayrixCloseBtn');
+    const sendBtn = document.getElementById('ayrixSendBtn');
+    const input = document.getElementById('ayrixMsgInput');
+    const body = document.getElementById('ayrixChatBody');
+    const appCountEl = document.getElementById('ayrixAppCount');
+    const chatCountEl = document.getElementById('ayrixChatCount');
+    const badge = document.getElementById('ayrixBtnBadge');
+
+    // open/close
+    function openChat() {
+      panel.classList.add('open');
+      panel.setAttribute('aria-hidden','false');
+      // optional: reset unread badge
+      badge.style.display = 'none';
+    }
+    function closeChat() {
+      panel.classList.remove('open');
+      panel.setAttribute('aria-hidden','true');
+    }
+
+    btn.addEventListener('click', openChat);
+    closeBtn.addEventListener('click', closeChat);
+
+    // send sample message (you should replace with your socket/fetch)
+    function appendMessage(text, who='other') {
+      const el = document.createElement('div');
+      el.className = 'ayrix-msg ' + (who === 'me' ? 'me' : 'other');
+      el.textContent = text;
+      body.appendChild(el);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', () => {
+      const txt = input.value.trim();
+      if(!txt) return;
+      appendMessage(txt, 'me');
+      input.value = '';
+      // hook: call sendToServer(txt)
+      if(typeof window.ayrixSendToServer === 'function') {
+        window.ayrixSendToServer(txt);
+      } else {
+        // demo echo after 600ms
+        setTimeout(()=> appendMessage('Echo: '+txt,'other'), 550);
+      }
+    });
+
+    // allow Enter to send (Shift+Enter for new line)
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    // Exported helpers for integration
+    window.ayrixChat = {
+      open: openChat,
+      close: closeChat,
+      appendMessage,
+      // update counts: {app: number, chat: number}
+      updateCounts: function(obj){
+        if(typeof obj !== 'object') return;
+        if(typeof obj.app === 'number') {
+          appCountEl.textContent = 'App: ' + obj.app;
+        }
+        if(typeof obj.chat === 'number') {
+          chatCountEl.textContent = 'Chat: ' + obj.chat;
+          // show tiny badge with number of unread chat users or something
+          if(obj.chat > 0) {
+            badge.textContent = obj.chat;
+            badge.style.display = 'block';
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+      }
+    };
+
+    // Example: small welcome messages (remove in production)
+    appendMessage('Welcome to Ayrix chat! Be kind 💜','other');
+  })();
+</script>
+
 </body>
 
 </html> 
