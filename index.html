@@ -464,6 +464,24 @@ function formatTime(sec) {
     const db = getDatabase(app);
     const sessionRef = ref(db, "sessions/ayrix");
 
+    // --- QUICK CHAT DB TEST (temporary) ---
+const testRoomRef = ref(db, 'rooms/test_room/messages');
+
+// Listen for new messages in test room
+onChildAdded(testRoomRef, (snap) => {
+  console.log('[DB LISTENER] New msg:', snap.key, snap.val());
+});
+
+// Push a test message (will create the path if not exists)
+push(testRoomRef, {
+  uid: 'test-user',
+  text: 'hello from ayrix test!',
+  ts: Date.now()
+})
+.then(() => console.log('[DB WRITE] Test message pushed OK'))
+.catch(err => console.error('[DB WRITE ERROR]', err));
+
+
 
     // ---------- UI ELEMENTS ----------
     const audio = document.getElementById("player");
