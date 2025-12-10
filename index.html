@@ -244,6 +244,62 @@
 
       }catch(e){ dbg('[loadSongsFromApi] error: '+(e.message||e)); songsContainer.textContent = 'Error loading songs. Open debug to see details.'; }
     }
+// === DEBUGGING VERSION: loadSongsFromApi ===
+async function loadSongsFromApi(){
+  songsContainer.textContent = 'Loading songs...'; dbg('[loadSongsFromApi] fetching: '+(typeof SCRIPT_URL==='undefined'?'<NO SCRIPT_URL>':SCRIPT_URL));
+  try{
+    if(typeof SCRIPT_URL==='undefined') throw new Error('SCRIPT_URL is not defined');
+    const r = await fetch(SCRIPT_URL, { cache:'no-store' });
+    dbg('[loadSongsFromApi] fetch done. status='+r.status);
+    const txt = await r.text();
+    dbg('[loadSongsFromApi] response text length='+(txt?txt.length:0));
+    // quick sniff: show first 500 chars
+    dbg('[loadSongsFromApi] response preview:\\n' + (txt?txt.slice(0,500):'<empty>') + (txt && txt.length>500? '\\n---(truncated)---' : '') );
+
+    if(!r.ok) throw new Error('HTTP '+r.status);
+
+    let data = null;
+    try {
+      data = JSON.parse(txt);
+      dbg('[loadSongsFromApi] JSON.parse OK; type=' + (Array.isArray(data)?'array':'object'));
+    } catch(e){
+      dbg('[loadSongsFromApi] JSON.parse failed: '+e.message);
+      // try eval as fallback (show warning)
+      try{
+        data = eval('('+txt+')');
+        dbg('[loadSongsFromApi] eval() succeeded');
+      }catch(e2){
+        dbg('[loadSongsFromApi] eval() failed: '+e2.message);
+        throw new Error('Failed to parse response as JSON');
+      }
+    }
+
+    // normalize
+    let list = [];
+    if(Array.isArray(data)) list = data;
+    else if(data && Array.isArray(data.songs)) list = data.songs;
+    else if(data && Array.isArray(data.items)) list = data.items;
+    dbg('[loadSongsFromApi] resolved list length=' + list.length);
+
+    if(!Array.isArray(list) || !list.length){
+      songsContainer.textContent = 'No songs found in API';
+      dbg('[loadSongsFromApi] NO songs found; leaving.');
+      return;
+    }
+
+    SONGS = list.map(it => typeof it === 'string' ? { name: '', url: it } : (it.url ? it : { name: it.name||'', url: it.streamUrl||it.url }));
+    dbg('[loadSongsFromApi] SONGS normalized count=' + SONGS.length);
+    renderSongList();
+    // pre-resolve if needed...
+    for(let i=0;i<SONGS.length;i++){
+      try{ const resolved = await resolveStreamUrl(SONGS[i].url); if(resolved) SONGS[i].streamUrl = resolved; }catch(e){ dbg('[resolveStreamUrl] error @'+i+': '+e.message); }
+    }
+    dbg('[loadSongsFromApi] finished load.');
+  }catch(e){
+    dbg('[loadSongsFromApi] ERROR: '+(e && e.message || e));
+    songsContainer.textContent = 'Error loading songs. Open debug overlay.';
+  }
+}
 
     // Start
     loadSongsFromApi().catch(e=>dbg('[init] loadSongs error:'+e.message));
