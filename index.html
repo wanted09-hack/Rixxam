@@ -298,15 +298,16 @@
       dbg.style.display = 'block';
     }
     // make sure logs go there (forward console)
-    const origlog = console.log.bind(console);
-    console.log = (...args) => {
-      origLog(...args);
-      try{
-        const c = document.getElementById('ayrix-debug-content');
-        if(c) c.textContent += args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + '\\n';
-        if(c) c.scrollTop = c.scrollHeight;
-      }catch(e){}
-    };
+    const origLog = console.log.bind(console);
+console.log = (...args) => {
+  origLog(...args);
+  try{
+    const c = document.getElementById('ayrix-debug-content');
+    if(c) c.textContent += args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + '\n';
+    if(c) c.scrollTop = c.scrollHeight;
+  }catch(e){}
+};
+
     const origErr = console.error.bind(console);
     console.error = (...args) => {
       origErr(...args);
