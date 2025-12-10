@@ -1,390 +1,625 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ayrix — Refined Index</title>
+  <meta charset="UTF-8" />
+  <title>Ayrix – Live Sync Player</title>
+
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/ayrix-icon-192.png">
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/ayrix-icon-192.png">
+  <link rel="apple-touch-icon" href="icons/ayrix-icon-192.png">
   <meta name="theme-color" content="#05000b">
 
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    /* Minimal, cleaned styles based on your theme */
-    *{box-sizing:border-box}
-    body{margin:0;padding:16px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#ff4da6 0,transparent 55%),radial-gradient(circle at bottom,#7b5dff 0,transparent 55%),#050515;color:#f8f2ff;min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .app{width:92%;max-width:760px;margin:0 auto;background:rgba(8,6,24,0.96);border-radius:20px;padding:20px;box-shadow:0 18px 45px rgba(0,0,0,.7),0 0 35px rgba(255,77,166,.45);backdrop-filter:blur(12px)}
-    h1{text-align:center;margin:0 0 6px;font-size:1.4rem}
-    .subtitle{text-align:center;font-size:0.85rem;margin-bottom:12px;opacity:.9}
-    #hostToggle{display:block;width:100%;padding:12px;border-radius:999px;border:none;font-size:.95rem;margin-bottom:10px;cursor:pointer;background:linear-gradient(90deg,#252047,#342a63);color:#f6ebff}
-    #hostToggle.host{background:linear-gradient(90deg,#ff4fa0,#ff7edb);box-shadow:0 0 18px rgba(255,79,160,.45)}
-    #status{text-align:center;font-size:.85rem;margin-bottom:8px}
-    #songs{max-height:420px;overflow:auto;margin-top:10px;padding-right:6px}
-    .song-button{width:100%;padding:10px 12px;margin-bottom:8px;border-radius:12px;border:none;text-align:left;cursor:pointer;background:rgba(23,18,52,.95);color:#f7e9ff}
-    .song-button.playing{background:linear-gradient(90deg,#ff4fa0,#7f5dff);color:#fff}
-    #playerBar{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);margin-top:12px}
-    .player-controls{display:flex;justify-content:center;gap:18px}
-    audio{width:100%;display:block}
-    /* Debug overlay (small) */
-    #ayrix-debug{position:fixed;right:12px;bottom:12px;z-index:9999;background:rgba(0,0,0,0.7);color:#fff;padding:8px;border-radius:10px;font-size:12px;max-width:45vw;max-height:40vh;overflow:auto}
-  </style>
+        * {
+      box-sizing: border-box;
+    }
 
-  <script>
-    // TEMP: disable service worker registration while debugging (uncomment later)
-// if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #ff4da6 0, transparent 55%),
+                  radial-gradient(circle at bottom, #7b5dff 0, transparent 55%),
+                  #050515;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;       /* center vertically */
+      justify-content: center;   /* center horizontally */
+      color: #f8f2ff;
+    }
 
-  </script>
+    .app {
+      width: 90%;
+max-width: 600px;
+      
+margin: 0 auto;
+      background: rgba(8, 6, 24, 0.96);
+      border-radius: 24px;
+      padding: 20px 18px;
+      box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.7),
+        0 0 35px rgba(255, 77, 166, 0.55),
+        0 0 60px rgba(123, 93, 255, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-bottom: 14px;
+      opacity: 0.8;
+    }
+
+    #hostToggle {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #252047, #342a63);
+      color: #f6ebff;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+
+    #hostToggle.host {
+      background: linear-gradient(90deg, #ff4fa0, #ff7edb);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(255, 79, 160, 0.7);
+    }
+
+    #hostToggle:active {
+      transform: scale(0.98);
+    }
+
+    audio {
+      width: 100%;
+      margin: 12px 0 10px;
+      filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
+    }
+
+    #status {
+      font-size: 0.78rem;
+      text-align: center;
+      margin-bottom: 8px;
+      opacity: 0.9;
+    }
+
+    #songs {
+      max-height: 390px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding-right: 2px;
+    }
+
+    .song-button {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-radius: 14px;
+      border: none;
+      text-align: left;
+      font-size: 0.86rem;
+      cursor: pointer;
+      background: rgba(23, 18, 52, 0.95);
+      color: #f7e9ff;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+
+    .song-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    .song-button.playing {
+      background: linear-gradient(90deg, #ff4fa0, #7f5dff);
+      color: #fff;
+      box-shadow:
+        0 0 14px rgba(255, 79, 160, 0.7),
+        0 0 22px rgba(127, 93, 255, 0.6);
+      transform: translateY(-1px) scale(1.01);
+    }
+
+    .song-button.playing::before {
+      content: "● ";
+      color: #ffe9ff;
+    }
+    /* === New Ayrix Splash (Overlay + No Glitch) === */
+
+#ayrix-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top, #15001f, #050008 60%);
+  animation: ayrixSplashIn 0.5s ease-out forwards;
+}
+
+#ayrix-splash.hide {
+  animation: ayrixSplashOut 0.6s ease-in forwards;
+}
+
+.ayrix-splash-inner {
+  text-align: center;
+  padding: 24px;
+}
+
+.ayrix-splash-logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 24px;
+  box-shadow: 0 0 35px rgba(255, 80, 200, 0.6);
+}
+
+.ayrix-splash-title {
+  margin-top: 12px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.ayrix-splash-subtitle {
+  margin-top: 5px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+/* Fade-in animation */
+@keyframes ayrixSplashIn {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Fade-out animation */
+@keyframes ayrixSplashOut {
+  0% { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.96) translateY(-18px); visibility: hidden; }
+}
+
+/* App stays hidden until splash finishes */
+.app {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.app.app-ready {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+
+   #playerBar {
+     padding: 12px 18px;
+     margin-top: 10px;
+     border-radius: 18px;
+     background: rgba(255, 255, 255, 0.06);
+     backdrop-filter: blur(12px);
+   }
+
+   .time-row {
+     display: flex;
+     justify-content: space-between;
+     font-size: 11px;
+     opacity: 0.75;
+     margin-bottom: 6px;
+   }
+
+   #seekBar {
+     width: 100%;
+     -webkit-appearance: none;
+     appearance: none;
+     height: 4px;
+     border-radius: 999px;
+     background: rgba(255, 255, 255, 0.22);
+     outline: none;
+     margin-bottom: 12px;
+   }
+
+   #seekBar::-webkit-slider-thumb {
+     width: 14px;
+     height: 14px;
+     border-radius: 50%;
+     background: #ffffff;
+     -webkit-appearance: none;
+   }
+
+   .player-controls {
+     display: flex;
+     justify-content: center;
+     gap: 22px;
+   }
+
+   .player-controls button {
+     background: linear-gradient(135deg, #ffb347, #ff7a18);
+     color: #fff;
+     border: none;
+     padding: 10px 18px;
+     border-radius: 14px;
+     font-size: 20px;
+     box-shadow: 0 0 15px rgba(255, 122, 24, 0.4);
+     transition: 0.15s ease;
+   }
+
+   .player-controls button:active {
+     transform: scale(0.9);
+     box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+   }
+
+</style>
+  
 </head>
+
 <body>
-  <div class="app" id="root">
-    <h1>Ayrix — Live Sync Player</h1>
-    <div class="subtitle">Ayrix by Aman • Stay synced, stay close 🤍</div>
+  <!-- Ayrix opening splash -->
+  <div id="ayrix-splash">
+    <div class="ayrix-splash-inner">
+      <div class="ayrix-splash-logo-wrap">
+        <img src="icons/ayrix-icon-192.png" alt="Ayrix logo" class="ayrix-splash-logo">
+      </div>
+      <div class="ayrix-splash-title">AYRIX</div>
+      <div class="ayrix-splash-subtitle">Stay synced, stay close 🤍</div>
+    </div>
+  </div>
+  
+  <div class="app">
+    ...
+    <h1>Ayrix – Live Sync Player</h1>
+    
+
+    
+    <div class="subtitle">Ayrix by Aman, with luvv • Stay synced, stay close 🤍</div>
+
+    
 
     <button id="hostToggle">Become host</button>
     <div id="status">You are a listener. Wait for host to play a song.</div>
 
     <div id="playerBar">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px"><span id="currentTime">0:00</span><span id="totalTime">0:00</span></div>
-      <input id="seekBar" type="range" min="0" max="100" value="0" step="0.1" />
-      <div class="player-controls" style="margin-top:10px">
-        <button id="prevBtn">⏪</button>
-        <button id="playPauseBtn">▶</button>
-        <button id="nextBtn">⏩</button>
-      </div>
-      <audio id="player" crossorigin="anonymous"></audio>
-    </div>
+  <!-- Time row -->
+  <div class="time-row">
+    <span id="currentTime">0:00</span>
+    <span id="totalTime">0:00</span>
+  </div>
+
+  <!-- Progress line -->
+  <input
+    type="range"
+    id="seekBar"
+    min="0"
+    max="100"
+    value="0"
+    step="0.1"
+  />
+
+  <!-- Buttons below -->
+  <div class="player-controls">
+    <button id="prevBtn">⏪</button>
+    <button id="playPauseBtn">▶</button>
+    <button id="nextBtn">⏩</button>
+  </div>
+
+  <!-- Hidden real audio -->
+  <audio id="player"></audio>
+
+</div>
+
 
     <div id="songs">Loading songs…</div>
   </div>
 
-  <div id="ayrix-debug"><b>Ayrix debug</b><div id="ayrix-debug-content" style="margin-top:6px"></div></div>
+  <script>
+  const splash = document.getElementById("ayrix-splash");
+  const app = document.querySelector(".app");
+
+  if (splash && app) {
+    app.classList.remove("app-ready");
+
+    setTimeout(() => {
+      splash.classList.add("hide");
+    }, 1600); // 1.6s splash
+
+    setTimeout(() => {
+      splash.remove();
+      app.classList.add("app-ready");
+    }, 2300); // splash out + app fade-in
+  }
+</script>
+
 
   <script type="module">
-    dbg('[init] main script loaded');
-alert('DEBUG INIT: main script loaded');
+    // ====== GOOGLE DRIVE STREAM CONFIG ======
+    const GOOGLE_API_KEY = "AIzaSyA06vHg4uelFoqLIs-dVBF_trQ7qBtR7TU";
 
-    // ---------- CONFIG: replace placeholders before publishing ----------
-    const GOOGLE_API_KEY = 'AIzaSyA06vHg4uelFoqLIs-dVBF_trQ7qBtR7TU';
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSf4pGRfrEH3Y8nN9-mqGy6OT2z5BjXsWUlHFlha25lpnsQtR4xjSXnU7MDv1HLcZW6g/exec'; // <-- put your Google Apps Script URL
+    // ---------- SONG LIST (tumhare links) ----------
+    // ------------ SONG LIST (loaded from Ayrix JSON API) ---------
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxSf4pGRfrEH3Y8nN9-mqGy6OT2z5BjXsWUlHFlha25lpnsQtR4xjSXnU7MDv1HLcZW6g/exec";
+let SONGS = [];
 
-    const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDgCke5Pv2nQdFo7LalikW50N6haayuIS0",
-  authDomain: "ayrix-chat.firebaseapp.com",
-  databaseURL: "https://ayrix-chat-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ayrix-chat",
-  storageBucket: "ayrix-chat.firebasestorage.app",
-  messagingSenderId: "337316616818",
-  appId: "1:337316616818:web:45b2fc628daf31598f80eb"
-};
+// ================= CUSTOM PLAYER CONTROLS =================
 
+const audioPlayer = document.getElementById("player");
+const prevBtn = document.getElementById("prevBtn");
+const playPauseBtn = document.getElementById("playPauseBtn");
+const nextBtn = document.getElementById("nextBtn");
+const seekBar = document.getElementById("seekBar");
+const currentTimeEl = document.getElementById("currentTime");
+const totalTimeEl = document.getElementById("totalTime");
 
-    // ---------- Imports (Firebase modular API) ----------
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-    import { getDatabase, ref, onValue, update, push, onChildAdded } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js';
+let currentSongIndex = 0;
 
-    // ---------- DOM refs ----------
-    const audio = document.getElementById('player');
-    const hostToggle = document.getElementById('hostToggle');
-    const statusEl = document.getElementById('status');
-    const songsContainer = document.getElementById('songs');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const seekBar = document.getElementById('seekBar');
-    const currentTimeEl = document.getElementById('currentTime');
-    const totalTimeEl = document.getElementById('totalTime');
-    const dbgEl = document.getElementById('ayrix-debug-content');
+// Load song by index
+function loadSong(index) {
+    const song = SONGS[index];
+    if (!song) return;
+    const url = toStreamUrl(song.url);
+    audioPlayer.src = url;
+    audioPlayer.currentTime = 0;
+    audioPlayer.play();
+    highlightPlaying(url);
+    sendState();
+}
 
-    // ---------- State ----------
-    let SONGS = [];
-    let currentIndex = 0;
+// Play/Pause button
+playPauseBtn.addEventListener("click", () => {
+    if (audioPlayer.paused) {
+        audioPlayer.play();
+        playPauseBtn.innerText = "⏸";
+    } else {
+        audioPlayer.pause();
+        playPauseBtn.innerText = "▶";
+    }
+});
+
+// Previous button
+prevBtn.addEventListener("click", () => {
+    currentSongIndex = (currentSongIndex - 1 + SONGS.length) % SONGS.length;
+    loadSong(currentSongIndex);
+});
+
+// Next button
+nextBtn.addEventListener("click", () => {
+    currentSongIndex = (currentSongIndex + 1) % SONGS.length;
+    loadSong(currentSongIndex);
+});
+
+// Update seek bar + time
+audioPlayer.addEventListener("timeupdate", () => {
+    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+    seekBar.value = progress || 0;
+
+    currentTimeEl.innerText = formatTime(audioPlayer.currentTime);
+    totalTimeEl.innerText = formatTime(audioPlayer.duration);
+});
+
+// Seek manually
+seekBar.addEventListener("input", () => {
+    const time = (seekBar.value / 100) * audioPlayer.duration;
+    audioPlayer.currentTime = time;
+});
+
+// Format time
+function formatTime(sec) {
+    if (!sec) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+}
+
+    // Drive link -> streamable URL
+    function toStreamUrl(driveUrl) {
+      const match = driveUrl.match(/id=([^&]+)/);
+      const fileId = match ? match[1] : driveUrl.trim();
+      return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
+    }
+
+    // ---------- FIREBASE ----------
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      update
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCWnQ02Wy3rM-gG8yVwfSJchRsO7aDrTcU",
+      authDomain: "ritaxaman.firebaseapp.com",
+      databaseURL: "https://ritaxaman-default-rtdb.firebaseio.com",
+      projectId: "ritaxaman",
+      storageBucket: "ritaxaman.firebasestorage.app",
+      messagingSenderId: "559873885969",
+      appId: "1:559873885969:web:e7a7b4fe3a3fc5b420aeb0",
+      measurementId: "G-53Z6W1XTJS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const sessionRef = ref(db, "sessions/ritaAman");
+
+    // ---------- UI ELEMENTS ----------
+    const audio = document.getElementById("player");
+    const hostToggle = document.getElementById("hostToggle");
+    const statusEl = document.getElementById("status");
+    const songsContainer = document.getElementById("songs");
+
     let isHost = false;
 
-    function dbg(msg){
-      try{ const el = document.createElement('div'); el.textContent = msg; dbgEl.appendChild(el); dbgEl.scrollTop = dbgEl.scrollHeight; console.log(msg);}catch(e){}
+    // ---------- HOST TOGGLE ----------
+    hostToggle.addEventListener("click", () => {
+      isHost = !isHost;
+      if (isHost) {
+        hostToggle.classList.add("host");
+        hostToggle.textContent = "You are host ✅";
+        statusEl.textContent =
+          "You are host. Whatever you play will sync to connected devices.";
+        sendState();
+      } else {
+        hostToggle.classList.remove("host");
+        hostToggle.textContent = "Become host";
+        statusEl.textContent =
+          "You are a listener. Wait for host to play a song.";
+      }
+    });
+// ---------- LOAD SONGS FROM AYRIX JSON API ----------
+async function loadSongsFromApi() {
+  try {
+    if (songsContainer) {
+      songsContainer.textContent = "Loading songs...";
     }
 
-    // ---------- Firebase init ----------
-    const firebaseApp = initializeApp(FIREBASE_CONFIG);
-    const db = getDatabase(firebaseApp);
-    const sessionRef = ref(db, 'sessions/ayrix');
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
 
-    // Quick DB test (non-destructive)
-    (function quickDbTest(){
-      try{
-        const testRef = ref(db, 'rooms/ayrix_test/messages');
-        onChildAdded(testRef, snap => dbg('[DB] child added: ' + snap.key));
-        push(testRef,{uid:'ayrix-debug',text:'hello from client',ts:Date.now()}).then(()=>dbg('[DB] pushed test msg')).catch(e=>dbg('[DB] push err:'+e.message));
-      }catch(e){ dbg('[DB] init err:'+e.message); }
-    })();
-
-    // ---------- Utilities ----------
-    function formatTime(sec){ if(!sec || !isFinite(sec)) return '0:00'; const m=Math.floor(sec/60); const s=Math.floor(sec%60).toString().padStart(2,'0'); return `${m}:${s}` }
-
-    function extractDriveId(url){ if(!url) return null; url = url.trim(); const d = url.match(/\/d\/([a-zA-Z0-9_-]{10,})/); if(d && d[1]) return d[1]; const q = url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/); if(q && q[1]) return q[1]; const bare = url.match(/^([a-zA-Z0-9_-]{20,})$/); if(bare) return bare[1]; return null }
-
-    function driveAltMediaUrl(fileId){ if(!fileId) return ''; if(!GOOGLE_API_KEY || GOOGLE_API_KEY.startsWith('REDACTED')) return `https://drive.google.com/uc?export=download&id=${fileId}`; return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}` }
-
-    // lightweight normalization: removes trailing query params for simple compare
-    function resolveSimple(u){ if(!u) return ''; try{ return u.split('?')[0].replace(/\/\/+$/,''); }catch(e){return u} }
-
-    // ---------- Resolve stream URL for a given original (returns playable URL or '') ----------
-    async function resolveStreamUrl(original){
-      if(!original) return '';
-      // if already direct to an audio file
-      if(/https?:\/\/.+\.(mp3|m4a|wav|ogg|webm)(\?|$)/i.test(original)) return original;
-
-      const fileId = extractDriveId(original);
-      if(!fileId) return '';
-      const direct = driveAltMediaUrl(fileId);
-
-      // 1) quick check using Range request — often blocked by CORS
-      try{
-        const r = await fetch(direct, { method:'GET', headers: { Range:'bytes=0-0' }, cache:'no-store' });
-        const ct = (r.headers.get('content-type')||'').toLowerCase();
-        if(r.ok && /audio|mpeg|octet-stream/.test(ct)) return direct;
-      }catch(e){ dbg('[resolve] range check failed: '+e.message); }
-
-      // 2) blob fallback (may work if CORS allows)
-      try{
-        const r2 = await fetch(direct, { method:'GET', cache:'no-store' });
-        if(r2.ok){ const blob = await r2.blob(); if(blob.size>0) return URL.createObjectURL(blob); }
-      }catch(e){ dbg('[resolve] blob fetch failed: '+e.message); }
-
-      // 3) final fallback: webdownload link (may require auth but sometimes works)
-      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    if (!data || !Array.isArray(data.songs) || data.songs.length === 0) {
+      if (songsContainer) {
+        songsContainer.textContent = "No songs found in Drive folder.";
+      }
+      SONGS = [];
+      return;
     }
 
-    // ---------- Render songs ----------
-    function renderSongList(){
-      songsContainer.innerHTML = '';
-      if(!SONGS.length){ songsContainer.textContent = 'No songs found.'; return; }
-      SONGS.forEach((s,i)=>{
-        const btn = document.createElement('button'); btn.className='song-button'; btn.textContent = (i+1)+'. '+(s.name||s.title||('Song '+(i+1))); btn.dataset.index = i;
-        btn.addEventListener('click', async ()=>{
-          if(!isHost) return alert("Only host can select songs. Tap 'Become host' first.");
-          const resolved = s.streamUrl || await resolveStreamUrl(s.url);
-          if(!resolved) return alert('Cannot play this song (unresolvable).');
-          await playAsHost(resolved,i);
+    // API se aaye songs set karo
+    SONGS = data.songs;
+
+    if (songsContainer) {
+      songsContainer.textContent = "";
+    }
+
+    // buttons banao + pehla song select
+    buildSongButtons();
+    loadSong(0);
+  } catch (err) {
+    console.error("Error loading songs from API:", err);
+    if (songsContainer) {
+      songsContainer.textContent = "Error loading songs. Please try again later.";
+    }
+  }
+}
+
+    // ---------- SONG BUTTONS FROM SONGS ARRAY ----------
+    function buildSongButtons() {
+      if (!SONGS.length) {
+        songsContainer.textContent = "No songs configured.";
+        return;
+      }
+      songsContainer.innerHTML = "";
+      SONGS.forEach((song, index) => {
+        const btn = document.createElement("button");
+        btn.className = "song-button";
+        btn.textContent = (index + 1) + ". " + song.name;
+        btn.dataset.url = song.url; // original drive url
+
+        btn.addEventListener("click", () => {
+          if (!isHost) {
+            alert("Only host can select songs. Tap 'Become host' on your phone.");
+            return;
+          }
+          const streamUrl = toStreamUrl(song.url);
+          playAsHost(streamUrl);
+          highlightPlaying(streamUrl);
         });
+
         songsContainer.appendChild(btn);
       });
     }
 
-    function markPlaying(index){ const btns = songsContainer.querySelectorAll('.song-button'); btns.forEach(b=>b.classList.remove('playing')); const chosen = songsContainer.querySelector(`.song-button[data-index="${index}"]`); if(chosen) chosen.classList.add('playing'); }
-
-    // ---------- Core player controls ----------
-    playPauseBtn.addEventListener('click', async ()=>{ if(audio.paused){ try{ await audio.play(); playPauseBtn.textContent='⏸'; }catch(e){ dbg('[play] failed: '+e.message); } } else { audio.pause(); playPauseBtn.textContent='▶'; } sendState(); });
-
-    prevBtn.addEventListener('click', ()=>{ if(!SONGS.length) return; currentIndex = (currentIndex-1+SONGS.length)%SONGS.length; const s=SONGS[currentIndex]; if(isHost) playAsHost(s.streamUrl||s.url,currentIndex); else loadLocalSong(currentIndex); });
-    nextBtn.addEventListener('click', ()=>{ if(!SONGS.length) return; currentIndex = (currentIndex+1)%SONGS.length; const s=SONGS[currentIndex]; if(isHost) playAsHost(s.streamUrl||s.url,currentIndex); else loadLocalSong(currentIndex); });
-
-    audio.addEventListener('timeupdate', ()=>{ if(!audio.duration || !isFinite(audio.duration)) return; const percent = (audio.currentTime/audio.duration)*100; seekBar.value = percent||0; currentTimeEl.textContent = formatTime(audio.currentTime); totalTimeEl.textContent = formatTime(audio.duration); });
-
-    seekBar.addEventListener('input', ()=>{ if(!audio.duration || !isFinite(audio.duration)) return; audio.currentTime = (seekBar.value/100)*audio.duration; sendState(); });
-
-    // ---------- Host toggle & state sync ----------
-    hostToggle.addEventListener('click', ()=>{ isHost = !isHost; hostToggle.classList.toggle('host', isHost); hostToggle.textContent = isHost ? 'You are host ✅' : 'Become host'; statusEl.textContent = isHost ? 'You are host. Whatever you play will sync to connected devices.' : 'You are a listener. Wait for host to play a song.'; if(isHost) sendState(); });
-
-    function sendState(){ if(!isHost) return; update(sessionRef, { songUrl: audio.src||'', isPlaying: !audio.paused, position: audio.currentTime||0, updatedAt: Date.now() }).catch(e=>dbg('[sendState] '+(e.message||e))); }
-
-    async function playAsHost(url, idx){ if(!isHost) return; let final = url; if(!/^https?:\/\//.test(final)) final = await resolveStreamUrl(url); audio.src = final; try{ await audio.play(); playPauseBtn.textContent='⏸'; }catch(e){ dbg('[playAsHost] '+e.message); } currentIndex = typeof idx==='number'?idx:currentIndex; markPlaying(currentIndex); sendState(); }
-
-    function loadLocalSong(index){ const s = SONGS[index]; if(!s) return; audio.src = s.streamUrl || s.url; audio.load(); markPlaying(index); }
-
-    audio.addEventListener('play', ()=>sendState());
-    audio.addEventListener('pause', ()=>sendState());
-    audio.addEventListener('seeked', ()=>sendState());
-    audio.addEventListener('ended', ()=>sendState());
-
-    // ---------- Listener: receive session state ----------
-    onValue(sessionRef, async snap=>{
-      try{
-        const data = snap.val(); if(!data) return; if(isHost) return; const { songUrl, isPlaying, position } = data || {};
-        if(songUrl && audio.src !== songUrl){ audio.src = songUrl; try{ audio.load(); }catch(e){}; // mark if known
-          const idx = SONGS.findIndex(s => (s.streamUrl === songUrl) || (resolveSimple(s.url) === resolveSimple(songUrl)) );
-          if(idx>=0) currentIndex = idx; markPlaying(currentIndex);
+    function highlightPlaying(url) {
+      const buttons = songsContainer.querySelectorAll(".song-button");
+      buttons.forEach((b) => {
+        const streamForButton = toStreamUrl(b.dataset.url);
+        if (streamForButton === url) {
+          b.classList.add("playing");
+        } else {
+          b.classList.remove("playing");
         }
-        if(position != null && Math.abs((audio.currentTime||0) - position) > 1){ try{ audio.currentTime = position; }catch(e){} }
-        if(isPlaying && audio.paused) audio.play().catch(()=>{}); else if(!isPlaying && !audio.paused) audio.pause();
-        statusEl.textContent = 'Listening with host… 🎧';
-      }catch(e){ dbg('[onValue] '+e.message); }
+      });
+    }
+
+    // ---------- HOST: SEND STATE ----------
+    function sendState() {
+      if (!isHost) return;
+      update(sessionRef, {
+        songUrl: audio.src || "",
+        isPlaying: !audio.paused,
+        position: audio.currentTime || 0,
+        updatedAt: Date.now()
+      }).catch((e) => console.error("sendState error:", e));
+    }
+
+    async function playAsHost(url) {
+      if (!isHost) return;
+      audio.src = url;
+      audio.currentTime = 0;
+      try {
+        await audio.play();
+      } catch (e) {
+        console.error("Playback error:", e);
+      }
+      sendState();
+    }
+
+    audio.addEventListener("play", () => sendState());
+    audio.addEventListener("pause", () => sendState());
+    audio.addEventListener("seeked", () => sendState());
+    audio.addEventListener("ended", () => sendState());
+
+    // ---------- LISTENER: RECEIVE STATE ----------
+    onValue(sessionRef, async (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      const {songUrl, isPlaying, position} = data;
+
+      if (isHost) return; // host ignore kare
+
+      if (songUrl && audio.src !== songUrl) {
+        audio.src = songUrl;
+        highlightPlaying(songUrl);
+      }
+
+      if (Math.abs(audio.currentTime - position) > 1) {
+        audio.currentTime = position;
+      }
+
+      if (isPlaying && audio.paused) {
+        audio.play().catch(() => { });
+      } else if (!isPlaying && !audio.paused) {
+        audio.pause();
+      }
+
+      statusEl.textContent = "Listening with host… 🎧";
     });
 
-    // ---------- Load songs from your Google Apps Script API ----------
-    async function loadSongsFromApi(){
-      songsContainer.textContent = 'Loading songs…'; dbg('[loadSongsFromApi] fetching: '+SCRIPT_URL);
-      try{
-        const r = await fetch(SCRIPT_URL, { cache:'no-store' });
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        const txt = await r.text();
-        let data;
-        try{ data = JSON.parse(txt); }catch(e){ // maybe the API returns a raw array
-          dbg('[load] JSON parse failed: '+e.message);
-          try{ data = eval(txt); }catch(e2){ data = null; }
-        }
-
-        // Accept either an array directly or { songs: [...] } object
-        let list = [];
-        if(Array.isArray(data)) list = data;
-        else if(data && Array.isArray(data.songs)) list = data.songs;
-        else if(data && Array.isArray(data.items)) list = data.items;
-
-        if(!Array.isArray(list) || !list.length){ songsContainer.textContent = 'No songs found in API.'; SONGS = []; dbg('[load] no songs'); return; }
-
-        // Normalize song objects: { name/title, url }
-        SONGS = list.map(it => typeof it === 'string' ? { name: '', url: it } : (it.url ? it : { name: it.name||it.title||'', url: it.url || it.link || '' }));
-
-        // Pre-resolve streamUrl for each song (best-effort, do sequentially to avoid parallel throttling)
-        for(let i=0;i<SONGS.length;i++){
-          const s = SONGS[i];
-          try{ const resolved = await resolveStreamUrl(s.url); if(resolved) s.streamUrl = resolved; dbg(`[resolve] ${i}: ${resolved? 'OK':'FAILED'} (${s.url})`); }catch(e){ dbg('[resolve] err:'+e.message); s.streamUrl=''; }
-        }
-
-        renderSongList();
-
-        // Auto-load first playable
-        const firstPlayable = SONGS.findIndex(s=>s.streamUrl||(/https?:\/\/.+\.(mp3|m4a|wav|ogg|webm)(\?|$)/i.test(s.url)));
-        if(firstPlayable>=0){ currentIndex = firstPlayable; const s = SONGS[firstPlayable]; audio.src = s.streamUrl || s.url; audio.load(); markPlaying(firstPlayable); dbg('[loadSongsFromApi] first playable index='+firstPlayable); }
-
-      }catch(e){ dbg('[loadSongsFromApi] error: '+(e.message||e)); songsContainer.textContent = 'Error loading songs. Open debug to see details.'; }
-    }
-// === DEBUGGING VERSION: loadSongsFromApi ===
-async function loadSongsFromApi(){
-  dbg('[test] loadSongsFromApi called');
-alert('DEBUG: loadSongsFromApi called');
-
-  songsContainer.textContent = 'Loading songs...'; dbg('[loadSongsFromApi] fetching: '+(typeof SCRIPT_URL==='undefined'?'<NO SCRIPT_URL>':SCRIPT_URL));
-  try{
-    if(typeof SCRIPT_URL==='undefined') throw new Error('SCRIPT_URL is not defined');
-    const r = await fetch(SCRIPT_URL, { cache:'no-store' });
-    dbg('[loadSongsFromApi] fetch done. status='+r.status);
-    const txt = await r.text();
-    dbg('[loadSongsFromApi] response text length='+(txt?txt.length:0));
-    // quick sniff: show first 500 chars
-    dbg('[loadSongsFromApi] response preview:\\n' + (txt?txt.slice(0,500):'<empty>') + (txt && txt.length>500? '\\n---(truncated)---' : '') );
-
-    if(!r.ok) throw new Error('HTTP '+r.status);
-
-    let data = null;
-    try {
-      data = JSON.parse(txt);
-      dbg('[loadSongsFromApi] JSON.parse OK; type=' + (Array.isArray(data)?'array':'object'));
-    } catch(e){
-      dbg('[loadSongsFromApi] JSON.parse failed: '+e.message);
-      // try eval as fallback (show warning)
-      try{
-        data = eval('('+txt+')');
-        dbg('[loadSongsFromApi] eval() succeeded');
-      }catch(e2){
-        dbg('[loadSongsFromApi] eval() failed: '+e2.message);
-        throw new Error('Failed to parse response as JSON');
-      }
-    }
-
-    // normalize
-    let list = [];
-    if(Array.isArray(data)) list = data;
-    else if(data && Array.isArray(data.songs)) list = data.songs;
-    else if(data && Array.isArray(data.items)) list = data.items;
-    dbg('[loadSongsFromApi] resolved list length=' + list.length);
-
-    if(!Array.isArray(list) || !list.length){
-      songsContainer.textContent = 'No songs found in API';
-      dbg('[loadSongsFromApi] NO songs found; leaving.');
-      return;
-    }
-
-    SONGS = list.map(it => typeof it === 'string' ? { name: '', url: it } : (it.url ? it : { name: it.name||'', url: it.streamUrl||it.url }));
-    dbg('[loadSongsFromApi] SONGS normalized count=' + SONGS.length);
-    renderSongList();
-    // pre-resolve if needed...
-    for(let i=0;i<SONGS.length;i++){
-      try{ const resolved = await resolveStreamUrl(SONGS[i].url); if(resolved) SONGS[i].streamUrl = resolved; }catch(e){ dbg('[resolveStreamUrl] error @'+i+': '+e.message); }
-    }
-    dbg('[loadSongsFromApi] finished load.');
-  }catch(e){
-    dbg('[loadSongsFromApi] ERROR: '+(e && e.message || e));
-    songsContainer.textContent = 'Error loading songs. Open debug overlay.';
-  }
-}
-
-    // Start
-    loadSongsFromApi().catch(e=>dbg('[init] loadSongs error:'+e.message));
-
-    // Small helper to resolve simple urls for comparison
-    function resolveSimple(u){ if(!u) return ''; try{ return u.split('?')[0].replace(/\/+$/,''); }catch(e){return u} }
+    // ----------- START -----------
+loadSongsFromApi();
 
   </script>
-
-  
-<script>
-
-  // === FORCE SHOW BIG DEBUG OVERLAY (temporary for debugging) ===
-(function forceShowDebug(){
-  try{
-    const dbg = document.getElementById('ayrix-debug');
-    const dbgC = document.getElementById('ayrix-debug-content');
-    if(!dbg){
-      // create one if not present
-      const d = document.createElement('div');
-      d.id = 'ayrix-debug';
-      d.style.position = 'fixed';
-      d.style.left = '8px';
-      d.style.right = '8px';
-      d.style.bottom = '8px';
-      d.style.top = '8px';
-      d.style.zIndex = 2147483647;
-      d.style.background = 'rgba(0,0,0,0.92)';
-      d.style.color = '#fff';
-      d.style.padding = '12px';
-      d.style.borderRadius = '12px';
-      d.style.overflow = 'auto';
-      d.style.fontSize = '13px';
-      d.style.backdropFilter = 'blur(6px)';
-      const inner = document.createElement('div');
-      inner.id = 'ayrix-debug-content';
-      inner.style.whiteSpace = 'pre-wrap';
-      d.appendChild(inner);
-      document.body.appendChild(d);
-    } else {
-      // enlarge existing
-      dbg.style.left = '8px';
-      dbg.style.right = '8px';
-      dbg.style.top = '8px';
-      dbg.style.bottom = '8px';
-      dbg.style.zIndex = 2147483647;
-      dbg.style.background = 'rgba(0,0,0,0.92)';
-      dbg.style.padding = '12px';
-      dbg.style.overflow = 'auto';
-      dbg.style.fontSize = '13px';
-      dbg.style.borderRadius = '8px';
-      dbg.style.display = 'block';
-    }
-    // make sure logs go there (forward console)
-    const origLog = console.log.bind(console);
-console.log = (...args) => {
-  origLog(...args);
-  try{
-    const c = document.getElementById('ayrix-debug-content');
-    if(c) c.textContent += args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + '\n';
-    if(c) c.scrollTop = c.scrollHeight;
-  }catch(e){}
-};
-
-    const origErr = console.error.bind(console);
-    console.error = (...args) => {
-      origErr(...args);
-      try{
-        const c = document.getElementById('ayrix-debug-content');
-        if(c) c.textContent += '[ERR] ' + args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + '\\n';
-        if(c) c.scrollTop = c.scrollHeight;
-      }catch(e){}
-    };
-    console.log('[debug] forceShowDebug enabled — logs will appear here.');
-  }catch(e){
-    console.error('forceShowDebug error', e);
-  }
-})();
-</script>
 </body>
-</html>
+
+</html> 
