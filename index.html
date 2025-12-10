@@ -252,5 +252,75 @@
     function resolveSimple(u){ if(!u) return ''; try{ return u.split('?')[0].replace(/\/+$/,''); }catch(e){return u} }
 
   </script>
+
+  
+<script>
+
+  // === FORCE SHOW BIG DEBUG OVERLAY (temporary for debugging) ===
+(function forceShowDebug(){
+  try{
+    const dbg = document.getElementById('ayrix-debug');
+    const dbgC = document.getElementById('ayrix-debug-content');
+    if(!dbg){
+      // create one if not present
+      const d = document.createElement('div');
+      d.id = 'ayrix-debug';
+      d.style.position = 'fixed';
+      d.style.left = '8px';
+      d.style.right = '8px';
+      d.style.bottom = '8px';
+      d.style.top = '8px';
+      d.style.zIndex = 2147483647;
+      d.style.background = 'rgba(0,0,0,0.92)';
+      d.style.color = '#fff';
+      d.style.padding = '12px';
+      d.style.borderRadius = '12px';
+      d.style.overflow = 'auto';
+      d.style.fontSize = '13px';
+      d.style.backdropFilter = 'blur(6px)';
+      const inner = document.createElement('div');
+      inner.id = 'ayrix-debug-content';
+      inner.style.whiteSpace = 'pre-wrap';
+      d.appendChild(inner);
+      document.body.appendChild(d);
+    } else {
+      // enlarge existing
+      dbg.style.left = '8px';
+      dbg.style.right = '8px';
+      dbg.style.top = '8px';
+      dbg.style.bottom = '8px';
+      dbg.style.zIndex = 2147483647;
+      dbg.style.background = 'rgba(0,0,0,0.92)';
+      dbg.style.padding = '12px';
+      dbg.style.overflow = 'auto';
+      dbg.style.fontSize = '13px';
+      dbg.style.borderRadius = '8px';
+      dbg.style.display = 'block';
+    }
+    // make sure logs go there (forward console)
+    const origlog = console.log.bind(console);
+    console.log = (...args) => {
+      origLog(...args);
+      try{
+        const c = document.getElementById('ayrix-debug-content');
+        if(c) c.textContent += args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + '\\n';
+        if(c) c.scrollTop = c.scrollHeight;
+      }catch(e){}
+    };
+    const origErr = console.error.bind(console);
+    console.error = (...args) => {
+      origErr(...args);
+      try{
+        const c = document.getElementById('ayrix-debug-content');
+        if(c) c.textContent += '[ERR] ' + args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + '\\n';
+        if(c) c.scrollTop = c.scrollHeight;
+      }catch(e){}
+    };
+    console.log('[debug] forceShowDebug enabled — logs will appear here.');
+  }catch(e){
+    console.error('forceShowDebug error', e);
+  }
+})();
+</script>
 </body>
 </html>
