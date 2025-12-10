@@ -463,7 +463,87 @@ function toStreamUrl(driveUrl) {
   return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
 }
 
-  
+  // ---- Unified songs fetch + smart stream resolver ----
+async function loadSongsFromApi() {
+  try {
+    console.log('Starting songs fetch...');
+    const r = await fetch(SCRIPT_URL);
+    if (!r.ok) throw new Error('Songs API HTTP ' + r.status);
+    const data = await r.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn('No songs returned from API', data);
+      SONGS = [];
+      return;
+    }
+
+    SONGS = data.map(s => (typeof s === 'string' ? { title: '', url: s } : s));
+
+    for (let i = 0; i < SONGS.length; i++) {
+      const song = SONGS[i];
+      const original = song.url || '';
+      if (!original) { song.streamUrl = ''; continue; }
+
+      const candidate = toStreamUrl(original);
+      if (!candidate) {
+        console.warn('No candidate stream URL for', original);
+        song.streamUrl = '';
+        continue;
+      }
+
+      let ok = false;
+      try {
+        const headResp = await fetch(candidate, { method: 'GET', headers: { Range: 'bytes=0-0' } });
+        const ct = headResp.headers.get('content-type') || '';
+        if (headResp.ok && /audio|application\/octet-stream/.test(ct)) {
+          ok = true;
+          song.streamUrl = candidate;
+          console.log('Direct stream OK for', original, '->', candidate, 'ct=', ct);
+        } else {
+          console.warn('Direct stream check not audio or not ok', headResp.status, ct);
+        }
+      } catch (e) {
+        console.warn('Direct stream fetch failed (likely CORS/403):', e && e.message);
+      }
+
+      if (!ok) {
+        try {
+          const blobResp = await fetch(candidate, { method: 'GET' });
+          if (!blobResp.ok) throw new Error('blob fetch HTTP ' + blobResp.status);
+          const blob = await blobResp.blob();
+          if (blob.size > 0) {
+            const objUrl = URL.createObjectURL(blob);
+            song.streamUrl = objUrl;
+            console.log('Blob fallback succeeded for', original);
+          } else {
+            console.warn('Blob fetch returned zero size for', original);
+            song.streamUrl = '';
+          }
+        } catch (e) {
+          console.warn('Blob fallback failed (CORS/permission):', e && e.message);
+          song.streamUrl = '';
+        }
+      }
+    }
+
+    const firstPlayable = SONGS.find(s => s.streamUrl && s.streamUrl.length);
+    if (firstPlayable) {
+      audioPlayer.src = firstPlayable.streamUrl;
+      audioPlayer.load();
+      console.log('Loaded first playable:', firstPlayable);
+    } else {
+      console.warn('No playable songs detected after checks');
+    }
+
+    if (typeof renderSongList === 'function') renderSongList(SONGS);
+
+  } catch (err) {
+    console.error('loadSongsFromApi error', err);
+  }
+}
+
+// Auto-run once on page load (you can remove later)
+try { loadSongsFromApi(); } catch(e) { console.warn('auto-load failed', e); }
+
 
     // ---------- FIREBASE ----------
     import {
