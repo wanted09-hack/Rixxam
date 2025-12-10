@@ -363,7 +363,7 @@ let SONGS = [];
 
 // ================= CUSTOM PLAYER CONTROLS =================
 
-const audio = document.getElementById("player");
+const audioPlayer = document.getElementById("player");
 const prevBtn = document.getElementById("prevBtn");
 const playPauseBtn = document.getElementById("playPauseBtn");
 const nextBtn = document.getElementById("nextBtn");
@@ -378,20 +378,20 @@ function loadSong(index) {
     const song = SONGS[index];
     if (!song) return;
     const url = toStreamUrl(song.url);
-    audio.src = url;
-    audio.currentTime = 0;
-    audio.play();
+    audioPlayer.src = url;
+    audioPlayer.currentTime = 0;
+    audioPlayer.play();
     highlightPlaying(url);
     sendState();
 }
 
 // Play/Pause button
 playPauseBtn.addEventListener("click", () => {
-    if (audio.paused) {
-        audio.play();
+    if (audioPlayer.paused) {
+        audioPlayer.play();
         playPauseBtn.innerText = "⏸";
     } else {
-        audio.pause();
+        audioPlayer.pause();
         playPauseBtn.innerText = "▶";
     }
 });
@@ -409,18 +409,18 @@ nextBtn.addEventListener("click", () => {
 });
 
 // Update seek bar + time
-audio.addEventListener("timeupdate", () => {
-    const progress = (audio.currentTime / audio.duration) * 100;
+audioPlayer.addEventListener("timeupdate", () => {
+    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
     seekBar.value = progress || 0;
 
-    currentTimeEl.innerText = formatTime(audio.currentTime);
-    totalTimeEl.innerText = formatTime(audio.duration);
+    currentTimeEl.innerText = formatTime(audioPlayer.currentTime);
+    totalTimeEl.innerText = formatTime(audioPlayer.duration);
 });
 
 // Seek manually
 seekBar.addEventListener("input", () => {
-    const time = (seekBar.value / 100) * audio.duration;
-    audio.currentTime = time;
+    const time = (seekBar.value / 100) * audioPlayer.duration;
+    audioPlayer.currentTime = time;
 });
 
 // Format time
