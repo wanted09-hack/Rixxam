@@ -246,6 +246,9 @@
     }
 // === DEBUGGING VERSION: loadSongsFromApi ===
 async function loadSongsFromApi(){
+  dbg('[test] loadSongsFromApi called');
+alert('DEBUG: loadSongsFromApi called');
+
   songsContainer.textContent = 'Loading songs...'; dbg('[loadSongsFromApi] fetching: '+(typeof SCRIPT_URL==='undefined'?'<NO SCRIPT_URL>':SCRIPT_URL));
   try{
     if(typeof SCRIPT_URL==='undefined') throw new Error('SCRIPT_URL is not defined');
