@@ -490,6 +490,46 @@ function toStreamUrl(driveUrl) {
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const sessionRef = ref(db, "sessions/ayrix");
+    
+    // ---- TEMP TEST BUTTON (JS only, safe to paste inside your existing script) ----
+(function addTestButton(){
+  try {
+    const btn = document.getElementById('ayrix-test-btn');
+    if (btn) return; // already added
+    const b = document.createElement('button');
+    b.id = 'ayrix-test-btn';
+    b.textContent = 'TEST';
+    Object.assign(b.style, {
+      position: 'fixed',
+      right: '10px',
+      bottom: '10px',
+      zIndex: 99999,
+      padding: '8px 10px',
+      background: '#111',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '13px',
+      cursor: 'pointer',
+      opacity: '0.95'
+    });
+    b.addEventListener('click', () => {
+      console.log('Running test…');
+      const examples = (typeof SONGS !== 'undefined' && Array.isArray(SONGS) && SONGS.length)
+        ? SONGS.map(s => s.url)
+        : ['no songs found'];
+      examples.forEach(u => console.log(u, '->', (typeof toStreamUrl === 'function') ? toStreamUrl(u) : 'toStreamUrl NOT found'));
+      alert('Test finished. Open Chrome → Menu → History → "Developer console messages" to see logs.');
+    });
+    // wait for body then append
+    if (document.body) document.body.appendChild(b);
+    else window.addEventListener('DOMContentLoaded', () => document.body.appendChild(b));
+  } catch (e) {
+    console.error('addTestButton error', e);
+  }
+})();
+
+
     // --- VISUAL DEBUG OVERLAY (temporary) ---
 (function setupVisualDebug() {
   // small floating panel to show logs on-screen (temporary)
