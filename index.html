@@ -431,12 +431,39 @@ function formatTime(sec) {
     return `${m}:${s}`;
 }
 
-    // Drive link -> streamable URL
-    function toStreamUrl(driveUrl) {
-      const match = driveUrl.match(/id=([^&]+)/);
-      const fileId = match ? match[1] : driveUrl.trim();
-      return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
-    }
+// Robust extraction of Drive fileId from many link formats
+function toStreamUrl(driveUrl) {
+  if (!driveUrl) return '';
+  driveUrl = driveUrl.trim();
+
+  // Try multiple patterns: /d/FILEID, id=FILEID, open?id=FILEID, or raw FILEID
+  let fileId = null;
+
+  // pattern /d/FILEID/
+  const dMatch = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (dMatch && dMatch[1]) fileId = dMatch[1];
+
+  // pattern id=FILEID or open?id=FILEID
+  if (!fileId) {
+    const idMatch = driveUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (idMatch && idMatch[1]) fileId = idMatch[1];
+  }
+
+  // if still not found and string looks like a bare id
+  if (!fileId) {
+    const maybeId = driveUrl.match(/^([a-zA-Z0-9_-]{10,})$/);
+    if (maybeId) fileId = maybeId[1];
+  }
+
+  if (!fileId) {
+    console.warn('toStreamUrl: could not extract fileId from', driveUrl);
+    return '';
+  }
+
+  return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
+}
+
+  
 
     // ---------- FIREBASE ----------
     import {
